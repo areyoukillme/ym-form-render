@@ -1,6 +1,6 @@
 <template>
   <customComponent
-    size="small"
+    :size="propsItem.props && propsItem.props.size || 'small'"
     :props-item="propsItem"
     :style="itemStyle"
     v-bind="propsItem.props"
@@ -21,6 +21,9 @@ export default {
         const tag = item.type ? 'el-' + item.type : item.component || 'el-input'
         if(item.component){
           return h(item.component,data,children)
+        }
+        if(item.render){
+          return item.render(h,props.value)
         }
         if (item.type === 'select') {
           children = item.options && item.options.map(i => h('el-option', { props: {
@@ -93,7 +96,12 @@ export default {
     itemValue() {
       const inFormat = this.propsItem.inFormat
       if (inFormat && typeof inFormat === 'function') {
-        return inFormat(this.formValue)
+        const value = inFormat(this.formValue)
+        // 专门为date-picker做处理 value 为数组时且item都为空值时返回''
+        if(Array.isArray(value) && !value.some(item=>item)){
+          return ''
+        }
+        return value
       } else {
         return this.formValue[this.propsItem.key]
       }

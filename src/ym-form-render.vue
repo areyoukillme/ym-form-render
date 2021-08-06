@@ -1,5 +1,5 @@
 <template>
-  <el-form v-on="$listeners" ref="elform" v-bind="Object.assign({labelWidth:'86px',labelSuffix:' : '},$attrs)" :model="formData" class="formRender">
+  <el-form v-on="$listeners" ref="elform" v-bind="Object.assign({labelWidth,labelSuffix:' : '},$attrs)" :model="formData" class="formRender">
     <el-row :gutter="gutter">
       <template v-for="(item,key) in _formMap">
         <el-col v-if="!isFunction(item.hidden)" :key="key" :span="item.span || 24/columnNum">
@@ -103,6 +103,10 @@ export default {
       }
       return Map
     },
+    labelWidth(){
+      const labelList = Object.keys(this.formMap).map(i=>this.formMap[i].label)
+      return Math.max(...labelList.map(item=>item.length))+3+'em'
+    },
   },
 
   watch: {
@@ -176,7 +180,16 @@ export default {
      * @public This is a public method
      */
     validate(callback) {
-      this.$refs.elform.validate(callback)
+      if(callback){
+        this.$refs.elform.validate(callback)
+      }else{
+        return new Promise((resolve,reject)=>{
+          this.$refs.elform.validate(valid=>{
+            if(valid) resolve(true)
+            else reject(false)
+          })
+        })
+      }
     },
     /**
      * 校验某一项 同element-form
